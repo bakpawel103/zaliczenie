@@ -3,8 +3,8 @@ package edu.iis.mto.testreactor.dishwasher;
 import static edu.iis.mto.testreactor.dishwasher.Status.SUCCESS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.samePropertyValuesAs;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
-import static org.junit.jupiter.api.Assertions.*;
 
 import edu.iis.mto.testreactor.dishwasher.engine.Engine;
 import edu.iis.mto.testreactor.dishwasher.pump.WaterPump;
@@ -29,6 +29,9 @@ public class DishWasherTest {
 
     private DishWasher dishWasher;
 
+    private ProgramConfiguration properProgramConfigurationWithRinseProgramHalfLevelFillWithNoTablets;
+    private ProgramConfiguration properProgramConfigurationWithRinseProgramHalfLevelFillWithTablets;
+
     @Test
     public void itCompiles() {
         assertThat(true, Matchers.equalTo(true));
@@ -37,20 +40,28 @@ public class DishWasherTest {
     @BeforeEach
     void setUp() {
         dishWasher = new DishWasher(waterPump, engine, dirtFilter, door);
+
+        properProgramConfigurationWithRinseProgramHalfLevelFillWithNoTablets = ProgramConfiguration.builder()
+                .withProgram(WashingProgram.RINSE)
+                .withFillLevel(FillLevel.HALF)
+                .withTabletsUsed(false)
+                .build();
+
+        properProgramConfigurationWithRinseProgramHalfLevelFillWithTablets = ProgramConfiguration.builder()
+                .withProgram(WashingProgram.RINSE)
+                .withFillLevel(FillLevel.HALF)
+                .withTabletsUsed(true)
+                .build();
     }
 
     @Test
     public void properProgramWithDoorsClosedWithNoTabletsWithRinseProgram_success() {
         when(door.closed()).thenReturn(true);
 
-        ProgramConfiguration properProgramConfiguration = ProgramConfiguration.builder()
-                .withProgram(WashingProgram.RINSE)
-                .withFillLevel(FillLevel.HALF)
-                .withTabletsUsed(false).build();
-        RunResult result = dishWasher.start(properProgramConfiguration);
+        RunResult result = dishWasher.start(properProgramConfigurationWithRinseProgramHalfLevelFillWithNoTablets);
         RunResult expected = RunResult.builder()
                 .withStatus(SUCCESS)
-                .withRunMinutes(properProgramConfiguration.getProgram().getTimeInMinutes())
+                .withRunMinutes(properProgramConfigurationWithRinseProgramHalfLevelFillWithNoTablets.getProgram().getTimeInMinutes())
                 .build();
 
         assertThat(expected, samePropertyValuesAs(result));
@@ -60,13 +71,22 @@ public class DishWasherTest {
     public void properProgramWithDoorsOpenedWithNoTabletsWithRinseProgram_fail_doorOpen() {
         when(door.closed()).thenReturn(false);
 
-        ProgramConfiguration properProgramConfiguration = ProgramConfiguration.builder()
-                .withProgram(WashingProgram.RINSE)
-                .withFillLevel(FillLevel.HALF)
-                .withTabletsUsed(false).build();
-        RunResult result = dishWasher.start(properProgramConfiguration);
+        RunResult result = dishWasher.start(properProgramConfigurationWithRinseProgramHalfLevelFillWithNoTablets);
         RunResult expected = RunResult.builder()
                 .withStatus(Status.DOOR_OPEN)
+                .build();
+
+        assertThat(expected, samePropertyValuesAs(result));
+    }
+
+    @Test
+    public void properProgramWithDoorsClosedWithTabletsWithRinseProgram_fail_errorFilter() {
+        when(door.closed()).thenReturn(true);
+        when(dirtFilter.capacity()).thenReturn(49.0d);
+
+        RunResult result = dishWasher.start(properProgramConfigurationWithRinseProgramHalfLevelFillWithTablets);
+        RunResult expected = RunResult.builder()
+                .withStatus(Status.ERROR_FILTER)
                 .build();
 
         assertThat(expected, samePropertyValuesAs(result));
