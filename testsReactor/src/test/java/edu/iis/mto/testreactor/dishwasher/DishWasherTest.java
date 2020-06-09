@@ -5,8 +5,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.samePropertyValuesAs;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import edu.iis.mto.testreactor.dishwasher.engine.Engine;
 import edu.iis.mto.testreactor.dishwasher.engine.EngineException;
@@ -14,6 +13,7 @@ import edu.iis.mto.testreactor.dishwasher.pump.PumpException;
 import edu.iis.mto.testreactor.dishwasher.pump.WaterPump;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -141,6 +141,21 @@ public class DishWasherTest {
         RunResult result = dishWasher.start(properProgramConfigurationWithEcoProgramHalfLevelFillWithNoTablets);
         RunResult expected = RunResult.builder()
                 .withStatus(Status.ERROR_PROGRAM)
+                .build();
+
+        assertThat(expected, samePropertyValuesAs(result));
+    }
+
+    @Test
+    void properProgramWithDoorsClosedWithNoTabletsWithRinseProgram_fail_waterPumpDrainError() throws PumpException {
+        when(door.closed()).thenReturn(true);
+        doThrow(PumpException.class)
+                .when(waterPump)
+                .drain();
+
+        RunResult result = dishWasher.start(properProgramConfigurationWithEcoProgramHalfLevelFillWithNoTablets);
+        RunResult expected = RunResult.builder()
+                .withStatus(Status.ERROR_PUMP)
                 .build();
 
         assertThat(expected, samePropertyValuesAs(result));
