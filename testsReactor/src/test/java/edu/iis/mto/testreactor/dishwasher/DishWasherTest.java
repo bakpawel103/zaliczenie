@@ -1,6 +1,10 @@
 package edu.iis.mto.testreactor.dishwasher;
 
+import static edu.iis.mto.testreactor.dishwasher.Status.SUCCESS;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.samePropertyValuesAs;
+import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
 
 import edu.iis.mto.testreactor.dishwasher.engine.Engine;
 import edu.iis.mto.testreactor.dishwasher.pump.WaterPump;
@@ -35,4 +39,20 @@ public class DishWasherTest {
         dishWasher = new DishWasher(waterPump, engine, dirtFilter, door);
     }
 
+    @Test
+    public void properProgramWithDoorsClosedWithNoTabletsWithRinseProgram_success() {
+        when(door.closed()).thenReturn(true);
+
+        ProgramConfiguration properProgramConfiguration = ProgramConfiguration.builder()
+                .withProgram(WashingProgram.RINSE)
+                .withFillLevel(FillLevel.HALF)
+                .withTabletsUsed(false).build();
+        RunResult result = dishWasher.start(properProgramConfiguration);
+        RunResult expected = RunResult.builder()
+                .withStatus(SUCCESS)
+                .withRunMinutes(properProgramConfiguration.getProgram().getTimeInMinutes())
+                .build();
+
+        assertThat(expected, samePropertyValuesAs(result));
+    }
 }
