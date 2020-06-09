@@ -55,4 +55,20 @@ public class DishWasherTest {
 
         assertThat(expected, samePropertyValuesAs(result));
     }
+
+    @Test
+    public void properProgramWithDoorsOpenedWithNoTabletsWithRinseProgram_fail_doorOpen() {
+        when(door.closed()).thenReturn(false);
+
+        ProgramConfiguration properProgramConfiguration = ProgramConfiguration.builder()
+                .withProgram(WashingProgram.RINSE)
+                .withFillLevel(FillLevel.HALF)
+                .withTabletsUsed(false).build();
+        RunResult result = dishWasher.start(properProgramConfiguration);
+        RunResult expected = RunResult.builder()
+                .withStatus(Status.DOOR_OPEN)
+                .build();
+
+        assertThat(expected, samePropertyValuesAs(result));
+    }
 }
