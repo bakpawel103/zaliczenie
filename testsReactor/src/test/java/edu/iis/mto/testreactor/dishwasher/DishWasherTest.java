@@ -172,4 +172,19 @@ public class DishWasherTest {
         order.verify(engine).runProgram(properProgramConfigurationWithEcoProgramHalfLevelFillWithNoTablets.getProgram());
         order.verify(waterPump).drain();
     }
+
+    @Test
+    void behaviourTest_validOrderAll() throws PumpException, EngineException {
+        when(door.closed()).thenReturn(true);
+        when(dirtFilter.capacity()).thenReturn(51.0d);
+
+        dishWasher.start(properProgramConfigurationWithRinseProgramHalfLevelFillWithTablets);
+
+        InOrder order = inOrder(door, dirtFilter, waterPump, engine);
+        order.verify(door).closed();
+        order.verify(dirtFilter).capacity();
+        order.verify(waterPump).pour(properProgramConfigurationWithRinseProgramHalfLevelFillWithTablets.getFillLevel());
+        order.verify(engine).runProgram(properProgramConfigurationWithRinseProgramHalfLevelFillWithTablets.getProgram());
+        order.verify(waterPump).drain();
+    }
 }
