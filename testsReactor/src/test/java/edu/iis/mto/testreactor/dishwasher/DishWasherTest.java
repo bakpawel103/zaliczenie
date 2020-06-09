@@ -160,4 +160,16 @@ public class DishWasherTest {
 
         assertThat(expected, samePropertyValuesAs(result));
     }
+
+    @Test
+    void behaviourTest_validOrder() throws PumpException, EngineException {
+        when(door.closed()).thenReturn(true);
+
+        dishWasher.start(properProgramConfigurationWithEcoProgramHalfLevelFillWithNoTablets);
+
+        InOrder order = inOrder(waterPump, engine);
+        order.verify(waterPump).pour(properProgramConfigurationWithEcoProgramHalfLevelFillWithNoTablets.getFillLevel());
+        order.verify(engine).runProgram(properProgramConfigurationWithEcoProgramHalfLevelFillWithNoTablets.getProgram());
+        order.verify(waterPump).drain();
+    }
 }
