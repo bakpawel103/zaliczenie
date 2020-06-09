@@ -31,6 +31,7 @@ public class DishWasherTest {
 
     private ProgramConfiguration properProgramConfigurationWithRinseProgramHalfLevelFillWithNoTablets;
     private ProgramConfiguration properProgramConfigurationWithRinseProgramHalfLevelFillWithTablets;
+    private ProgramConfiguration properProgramConfigurationWithEcoProgramHalfLevelFillWithNoTablets;
 
     @Test
     public void itCompiles() {
@@ -51,6 +52,12 @@ public class DishWasherTest {
                 .withProgram(WashingProgram.RINSE)
                 .withFillLevel(FillLevel.HALF)
                 .withTabletsUsed(true)
+                .build();
+
+        properProgramConfigurationWithEcoProgramHalfLevelFillWithNoTablets = ProgramConfiguration.builder()
+                .withProgram(WashingProgram.ECO)
+                .withFillLevel(FillLevel.HALF)
+                .withTabletsUsed(false)
                 .build();
     }
 
@@ -87,6 +94,19 @@ public class DishWasherTest {
         RunResult result = dishWasher.start(properProgramConfigurationWithRinseProgramHalfLevelFillWithTablets);
         RunResult expected = RunResult.builder()
                 .withStatus(Status.ERROR_FILTER)
+                .build();
+
+        assertThat(expected, samePropertyValuesAs(result));
+    }
+
+    @Test
+    public void properProgramWithDoorsClosedWithNoTabletsWithEcoProgram_success() {
+        when(door.closed()).thenReturn(true);
+
+        RunResult result = dishWasher.start(properProgramConfigurationWithEcoProgramHalfLevelFillWithNoTablets);
+        RunResult expected = RunResult.builder()
+                .withStatus(SUCCESS)
+                .withRunMinutes(properProgramConfigurationWithEcoProgramHalfLevelFillWithNoTablets.getProgram().getTimeInMinutes())
                 .build();
 
         assertThat(expected, samePropertyValuesAs(result));
